@@ -41,5 +41,5 @@ public class WXPayConstants {
     public static final String SANDBOX_REPORT_URL       = "https://api.mch.weixin.qq.com/sandboxnew/payitil/report";
     public static final String SANDBOX_SHORTURL_URL     = "https://api.mch.weixin.qq.com/sandboxnew/tools/shorturl";
     public static final String SANDBOX_AUTHCODETOOPENID_URL = "https://api.mch.weixin.qq.com/sandboxnew/tools/authcodetoopenid";
-
+    public static final String SANDBOX_GETSIGNKEY_URL = "https://api.mch.weixin.qq.com/sandboxnew/pay/getsignkey";
 }

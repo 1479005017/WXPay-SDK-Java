@@ -7,7 +7,7 @@
 
     <groupId>com.github.wxpay</groupId>
     <artifactId>WXPay-SDK-Java</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <name>WXPay-SDK-Java</name>
     <description>wxpay java sdk</description>
     <url>https://github.com/wxpay/WXPay-SDK-Java</url>

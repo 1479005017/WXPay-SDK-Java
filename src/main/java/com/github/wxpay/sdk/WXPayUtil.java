@@ -1,8 +1,8 @@
 package com.github.wxpay.sdk;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.security.MessageDigest;
 import org.w3c.dom.Node;
@@ -253,5 +253,64 @@ public class WXPayUtil {
             sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
         }
         return sb.toString().toUpperCase();
+    }
+
+    public static String getSandboxKey(String mchId, String key, SignType signType) throws Exception {
+        Map<String, String> reqData = new HashMap<String, String>();
+        reqData.put("mch_id", mchId);
+        reqData.put("nonce_str", generateNonceStr());
+        reqData.put("sign", generateSignature(reqData, key, signType));
+
+        String UTF8 = "UTF-8";
+        String reqBody = WXPayUtil.mapToXml(reqData);
+        URL httpUrl = new URL(WXPayConstants.SANDBOX_GETSIGNKEY_URL);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) httpUrl.openConnection();
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setConnectTimeout(3000);
+        httpURLConnection.setReadTimeout(5000);
+        httpURLConnection.connect();
+        OutputStream outputStream = httpURLConnection.getOutputStream();
+        outputStream.write(reqBody.getBytes(UTF8));
+
+        //获取内容
+        InputStream inputStream = httpURLConnection.getInputStream();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, UTF8));
+        final StringBuffer stringBuffer = new StringBuffer();
+        String line = null;
+        while ((line = bufferedReader.readLine()) != null) {
+            stringBuffer.append(line).append("\n");
+        }
+        String resp = stringBuffer.toString();
+        if (stringBuffer!=null) {
+            try {
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (inputStream!=null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (outputStream!=null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //sandbox_signkey
+        Map<String, String> respData = WXPayUtil.xmlToMap(resp);
+        if (WXPayConstants.SUCCESS.equals(respData.get("return_code"))) {
+            return respData.get("sandbox_signkey");
+        }
+        else {
+            throw new Exception(String.format("cat not get sandbox sign key"));
+        }
     }
 }
