@@ -5,6 +5,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.security.MessageDigest;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.nashorn.internal.parser.JSONParser;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -21,6 +25,8 @@ import com.github.wxpay.sdk.WXPayConstants.SignType;
 
 
 public class WXPayUtil {
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * XML格式字符串转换为Map
@@ -312,5 +318,51 @@ public class WXPayUtil {
         else {
             throw new Exception(String.format("cat not get sandbox sign key"));
         }
+    }
+
+    public static Map<String, String> getAccessToken(String appId, String appSecret, String code) throws Exception {
+        String UTF8 = "UTF-8";
+        URL httpUrl = new URL(String.format("%s?appid=%s&secret=%s&code=%s&grant_type=authorization_code", WXPayConstants.ACCESSTOKEN_URL, appId, appSecret, code));
+        HttpURLConnection httpURLConnection = (HttpURLConnection) httpUrl.openConnection();
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setConnectTimeout(3000);
+        httpURLConnection.setReadTimeout(5000);
+        httpURLConnection.connect();
+        OutputStream outputStream = httpURLConnection.getOutputStream();
+
+        //获取内容
+        InputStream inputStream = httpURLConnection.getInputStream();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, UTF8));
+        final StringBuffer stringBuffer = new StringBuffer();
+        String line = null;
+        while ((line = bufferedReader.readLine()) != null) {
+            stringBuffer.append(line).append("\n");
+        }
+        String resp = stringBuffer.toString();
+        if (stringBuffer!=null) {
+            try {
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (inputStream!=null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (outputStream!=null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //access_token
+        return objectMapper.readValue(stringBuffer.toString(), new TypeReference<Map<String, String>>(){});
     }
 }
